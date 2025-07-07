@@ -11,7 +11,7 @@
 1. **Start the database**
    ```bash
    docker-compose up -d
-   if the above fails try
+   or
    docker compose up -d
    ```
 
