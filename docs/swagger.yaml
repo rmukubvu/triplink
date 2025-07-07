@@ -1,0 +1,101 @@
+definitions:
+  handlers.ErrorResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  handlers.LoginSuccessResponse:
+    properties:
+      message:
+        type: string
+      token:
+        type: string
+    type: object
+  models.User:
+    properties:
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      phone:
+        type: string
+      role:
+        description: CARRIER, SHIPPER, ADMIN
+        type: string
+      updated_at:
+        type: string
+    type: object
+info:
+  contact: {}
+  title: Triplink API
+  version: "1.0"
+paths:
+  /api/login:
+    post:
+      consumes:
+      - application/json
+      description: Login a user with email and password
+      parameters:
+      - description: User login data
+        in: body
+        name: user
+        required: true
+        schema:
+          additionalProperties:
+            type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.LoginSuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Login a user
+      tags:
+      - Auth
+  /api/register:
+    post:
+      consumes:
+      - application/json
+      description: Register a new user with email, phone, password, and role
+      parameters:
+      - description: User registration data
+        in: body
+        name: user
+        required: true
+        schema:
+          additionalProperties:
+            type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.User'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Register a new user
+      tags:
+      - Auth
+swagger: "2.0"
