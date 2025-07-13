@@ -10,7 +10,7 @@ import (
 var DB *gorm.DB
 
 func Connect() {
-	dsn := "host=localhost user=postgres password=password dbname=triplink port=5432 sslmode=disable"
+	dsn := "host=localhost user=wowcard password=password dbname=triplink port=5432 sslmode=disable"
 	database, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 
 	if err != nil {
@@ -19,7 +19,19 @@ func Connect() {
 
 	fmt.Println("Database connection successfully opened")
 
-	database.AutoMigrate(&models.User{}, &models.Trip{}, &models.Load{}, &models.Message{}, &models.Transaction{})
+	database.AutoMigrate(
+		&models.User{},
+		&models.Vehicle{},
+		&models.Trip{},
+		&models.Load{},
+		&models.Quote{},
+		&models.Message{},
+		&models.Transaction{},
+		&models.Review{},
+		&models.Notification{},
+		&models.Manifest{},
+		&models.CustomsDocument{},
+	)
 
 	DB = database
 }

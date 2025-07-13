@@ -11,23 +11,258 @@ definitions:
       token:
         type: string
     type: object
-  models.User:
+  models.CustomsDocument:
     properties:
       created_at:
         type: string
       deleted_at:
         type: string
-      email:
+      document_number:
+        type: string
+      document_type:
+        description: COMMERCIAL_INVOICE, PACKING_LIST, BOL, CUSTOMS_DECLARATION, CERTIFICATE_OF_ORIGIN
+        type: string
+      document_url:
+        type: string
+      expiry_date:
         type: string
       id:
         type: integer
-      phone:
+      issued_date:
         type: string
-      role:
-        description: CARRIER, SHIPPER, ADMIN
+      issuing_authority:
+        type: string
+      load_id:
+        type: integer
+      updated_at:
+        type: string
+    type: object
+  models.Manifest:
+    properties:
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      destination_country:
+        type: string
+      document_url:
+        type: string
+      generated_at:
+        type: string
+      id:
+        type: integer
+      load_count:
+        type: integer
+      manifest_number:
+        type: string
+      origin_country:
+        type: string
+      total_value:
+        type: number
+      total_volume:
+        type: number
+      total_weight:
+        type: number
+      trip_id:
+        type: integer
+      updated_at:
+        type: string
+    type: object
+  models.Notification:
+    properties:
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      id:
+        type: integer
+      is_read:
+        type: boolean
+      message:
+        type: string
+      related_id:
+        description: ID of related load, trip, etc.
+        type: integer
+      title:
+        type: string
+      type:
+        description: QUOTE_RECEIVED, LOAD_BOOKED, PICKUP_SCHEDULED, etc.
         type: string
       updated_at:
         type: string
+      user_id:
+        type: integer
+    type: object
+  models.Quote:
+    properties:
+      accepted_at:
+        type: string
+      carrier_id:
+        type: integer
+      created_at:
+        type: string
+      currency:
+        type: string
+      deleted_at:
+        type: string
+      delivery_date:
+        type: string
+      id:
+        type: integer
+      load_id:
+        type: integer
+      notes:
+        type: string
+      pickup_date:
+        type: string
+      quote_amount:
+        type: number
+      status:
+        description: PENDING, ACCEPTED, REJECTED, EXPIRED
+        type: string
+      updated_at:
+        type: string
+      valid_until:
+        type: string
+    type: object
+  models.Review:
+    properties:
+      comment:
+        type: string
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      id:
+        type: integer
+      load_id:
+        type: integer
+      rating:
+        description: 1-5 stars
+        type: integer
+      review_type:
+        description: CARRIER_TO_SHIPPER, SHIPPER_TO_CARRIER
+        type: string
+      reviewee_id:
+        type: integer
+      reviewer_id:
+        type: integer
+      updated_at:
+        type: string
+    type: object
+  models.User:
+    properties:
+      address:
+        type: string
+      business_license:
+        type: string
+      city:
+        type: string
+      company_name:
+        type: string
+      country:
+        type: string
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      driver_license:
+        type: string
+      email:
+        type: string
+      first_name:
+        type: string
+      id:
+        type: integer
+      is_verified:
+        type: boolean
+      last_name:
+        type: string
+      license_expiry:
+        type: string
+      license_number:
+        type: string
+      phone:
+        type: string
+      postal_code:
+        type: string
+      profile_image:
+        type: string
+      rating:
+        type: number
+      role:
+        description: CARRIER, SHIPPER, ADMIN
+        type: string
+      state:
+        type: string
+      tax_id:
+        type: string
+      total_reviews:
+        type: integer
+      updated_at:
+        type: string
+      vehicles:
+        items:
+          $ref: '#/definitions/models.Vehicle'
+        type: array
+    type: object
+  models.Vehicle:
+    properties:
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      has_liftgate:
+        type: boolean
+      has_straps:
+        type: boolean
+      id:
+        type: integer
+      images:
+        items:
+          type: string
+        type: array
+      inspection_expiry:
+        type: string
+      insurance_expiry:
+        type: string
+      is_active:
+        type: boolean
+      is_food_grade:
+        type: boolean
+      is_hazmat_certified:
+        type: boolean
+      is_refrigerated:
+        type: boolean
+      license_plate:
+        type: string
+      load_capacity_kg:
+        type: number
+      load_capacity_m3:
+        type: number
+      make:
+        type: string
+      max_height:
+        type: number
+      max_length:
+        type: number
+      max_width:
+        type: number
+      model:
+        type: string
+      registration_expiry:
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: integer
+      vehicle_type:
+        description: FLATBED, REEFER, DRY_VAN, TANKER, BOX_TRUCK
+        type: string
+      vin:
+        type: string
+      year:
+        type: integer
     type: object
 info:
   contact: {}
@@ -98,4 +333,831 @@ paths:
       summary: Register a new user
       tags:
       - Auth
+  /carriers/{carrier_id}/quotes:
+    get:
+      description: Get all quotes created by a specific carrier
+      parameters:
+      - description: Carrier ID
+        in: path
+        name: carrier_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Quote'
+            type: array
+      summary: Get quotes by carrier
+      tags:
+      - quotes
+  /customs-documents:
+    post:
+      consumes:
+      - application/json
+      description: Create a new customs document for a load
+      parameters:
+      - description: Customs document data
+        in: body
+        name: document
+        required: true
+        schema:
+          $ref: '#/definitions/models.CustomsDocument'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.CustomsDocument'
+      summary: Create customs document
+      tags:
+      - customs
+  /customs-documents/{id}:
+    delete:
+      description: Delete a customs document
+      parameters:
+      - description: Document ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete customs document
+      tags:
+      - customs
+    get:
+      description: Get a specific customs document by its ID
+      parameters:
+      - description: Document ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.CustomsDocument'
+      summary: Get customs document by ID
+      tags:
+      - customs
+    put:
+      consumes:
+      - application/json
+      description: Update an existing customs document
+      parameters:
+      - description: Document ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated document data
+        in: body
+        name: document
+        required: true
+        schema:
+          $ref: '#/definitions/models.CustomsDocument'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.CustomsDocument'
+      summary: Update customs document
+      tags:
+      - customs
+  /loads/{load_id}/bill-of-lading:
+    post:
+      description: Generate a bill of lading for a load
+      parameters:
+      - description: Load ID
+        in: path
+        name: load_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.CustomsDocument'
+      summary: Generate bill of lading
+      tags:
+      - customs
+  /loads/{load_id}/commercial-invoice:
+    post:
+      description: Generate a commercial invoice for a load
+      parameters:
+      - description: Load ID
+        in: path
+        name: load_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.CustomsDocument'
+      summary: Generate commercial invoice
+      tags:
+      - customs
+  /loads/{load_id}/customs-documents:
+    get:
+      description: Get all customs documents for a specific load
+      parameters:
+      - description: Load ID
+        in: path
+        name: load_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.CustomsDocument'
+            type: array
+      summary: Get customs documents for a load
+      tags:
+      - customs
+  /loads/{load_id}/packing-list:
+    post:
+      description: Generate a packing list for a load
+      parameters:
+      - description: Load ID
+        in: path
+        name: load_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.CustomsDocument'
+      summary: Generate packing list
+      tags:
+      - customs
+  /loads/{load_id}/quotes:
+    get:
+      description: Get all quotes for a specific load
+      parameters:
+      - description: Load ID
+        in: path
+        name: load_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Quote'
+            type: array
+      summary: Get quotes for a load
+      tags:
+      - quotes
+  /manifests/{id}:
+    get:
+      description: Get a specific manifest by its ID
+      parameters:
+      - description: Manifest ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Manifest'
+      summary: Get manifest by ID
+      tags:
+      - manifests
+  /manifests/{id}/detailed:
+    get:
+      description: Get manifest with detailed load information
+      parameters:
+      - description: Manifest ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get detailed manifest data
+      tags:
+      - manifests
+  /manifests/{id}/document:
+    put:
+      consumes:
+      - application/json
+      description: Update the document URL for a manifest (after PDF generation)
+      parameters:
+      - description: Manifest ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Document URL
+        in: body
+        name: data
+        required: true
+        schema:
+          additionalProperties:
+            type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Manifest'
+      summary: Update manifest document URL
+      tags:
+      - manifests
+  /notifications:
+    post:
+      consumes:
+      - application/json
+      description: Create a new notification for a user
+      parameters:
+      - description: Notification data
+        in: body
+        name: notification
+        required: true
+        schema:
+          $ref: '#/definitions/models.Notification'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Notification'
+      summary: Create a notification
+      tags:
+      - notifications
+  /notifications/{id}:
+    delete:
+      description: Delete a specific notification
+      parameters:
+      - description: Notification ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete notification
+      tags:
+      - notifications
+  /notifications/{id}/read:
+    put:
+      description: Mark a specific notification as read
+      parameters:
+      - description: Notification ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Notification'
+      summary: Mark notification as read
+      tags:
+      - notifications
+  /quotes:
+    post:
+      consumes:
+      - application/json
+      description: Create a new quote for a load
+      parameters:
+      - description: Quote data
+        in: body
+        name: quote
+        required: true
+        schema:
+          $ref: '#/definitions/models.Quote'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Quote'
+      summary: Create a quote
+      tags:
+      - quotes
+  /quotes/{id}:
+    put:
+      consumes:
+      - application/json
+      description: Update an existing quote (only if pending)
+      parameters:
+      - description: Quote ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated quote data
+        in: body
+        name: quote
+        required: true
+        schema:
+          $ref: '#/definitions/models.Quote'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Quote'
+      summary: Update quote
+      tags:
+      - quotes
+  /quotes/{id}/accept:
+    post:
+      description: Accept a quote and create a booking
+      parameters:
+      - description: Quote ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Quote'
+      summary: Accept a quote
+      tags:
+      - quotes
+  /quotes/{id}/reject:
+    post:
+      description: Reject a quote
+      parameters:
+      - description: Quote ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Quote'
+      summary: Reject a quote
+      tags:
+      - quotes
+  /reviews:
+    post:
+      consumes:
+      - application/json
+      description: Create a new review for a user after a completed load
+      parameters:
+      - description: Review data
+        in: body
+        name: review
+        required: true
+        schema:
+          $ref: '#/definitions/models.Review'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Review'
+      summary: Create a review
+      tags:
+      - reviews
+  /reviews/{id}:
+    delete:
+      description: Delete a review (only by the reviewer)
+      parameters:
+      - description: Review ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete review
+      tags:
+      - reviews
+    get:
+      description: Get a specific review by its ID
+      parameters:
+      - description: Review ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Review'
+      summary: Get review by ID
+      tags:
+      - reviews
+    put:
+      consumes:
+      - application/json
+      description: Update an existing review (only by the reviewer)
+      parameters:
+      - description: Review ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated review data
+        in: body
+        name: review
+        required: true
+        schema:
+          $ref: '#/definitions/models.Review'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Review'
+      summary: Update review
+      tags:
+      - reviews
+  /trips/{trip_id}/customs-summary:
+    get:
+      description: Get a summary of all customs documents for loads in a trip
+      parameters:
+      - description: Trip ID
+        in: path
+        name: trip_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get customs documents summary for trip
+      tags:
+      - customs
+  /trips/{trip_id}/manifest:
+    get:
+      description: Get the manifest for a specific trip
+      parameters:
+      - description: Trip ID
+        in: path
+        name: trip_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Manifest'
+      summary: Get manifest by trip ID
+      tags:
+      - manifests
+    post:
+      description: Generate a consolidated manifest for all loads in a trip
+      parameters:
+      - description: Trip ID
+        in: path
+        name: trip_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Manifest'
+      summary: Generate manifest for a trip
+      tags:
+      - manifests
+  /users/{user_id}/notifications:
+    get:
+      description: Get all notifications for a specific user
+      parameters:
+      - description: User ID
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      - description: Show only unread notifications
+        in: query
+        name: unread_only
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Notification'
+            type: array
+      summary: Get user notifications
+      tags:
+      - notifications
+  /users/{user_id}/notifications/count:
+    get:
+      description: Get notification counts for a user (total and unread)
+      parameters:
+      - description: User ID
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get notification counts
+      tags:
+      - notifications
+  /users/{user_id}/notifications/read-all:
+    put:
+      description: Mark all notifications for a user as read
+      parameters:
+      - description: User ID
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Mark all notifications as read
+      tags:
+      - notifications
+  /users/{user_id}/rating-summary:
+    get:
+      description: Get rating summary and statistics for a user
+      parameters:
+      - description: User ID
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get user rating summary
+      tags:
+      - reviews
+  /users/{user_id}/reviews:
+    get:
+      description: Get all reviews for a specific user
+      parameters:
+      - description: User ID
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Review'
+            type: array
+      summary: Get reviews for a user
+      tags:
+      - reviews
+  /users/{user_id}/reviews-given:
+    get:
+      description: Get all reviews written by a specific user
+      parameters:
+      - description: User ID
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Review'
+            type: array
+      summary: Get reviews by a user
+      tags:
+      - reviews
+  /users/{user_id}/vehicles:
+    get:
+      description: Get all vehicles belonging to a specific user
+      parameters:
+      - description: User ID
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Vehicle'
+            type: array
+      summary: Get all vehicles for a user
+      tags:
+      - vehicles
+  /vehicles:
+    post:
+      consumes:
+      - application/json
+      description: Create a new vehicle for a carrier
+      parameters:
+      - description: Vehicle data
+        in: body
+        name: vehicle
+        required: true
+        schema:
+          $ref: '#/definitions/models.Vehicle'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Vehicle'
+      summary: Create a new vehicle
+      tags:
+      - vehicles
+  /vehicles/{id}:
+    delete:
+      description: Soft delete a vehicle (set is_active to false)
+      parameters:
+      - description: Vehicle ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete vehicle
+      tags:
+      - vehicles
+    get:
+      description: Get a specific vehicle by its ID
+      parameters:
+      - description: Vehicle ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Vehicle'
+      summary: Get vehicle by ID
+      tags:
+      - vehicles
+    put:
+      consumes:
+      - application/json
+      description: Update an existing vehicle
+      parameters:
+      - description: Vehicle ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated vehicle data
+        in: body
+        name: vehicle
+        required: true
+        schema:
+          $ref: '#/definitions/models.Vehicle'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Vehicle'
+      summary: Update vehicle
+      tags:
+      - vehicles
+  /vehicles/search:
+    get:
+      description: Search for available vehicles by type, capacity, and location
+      parameters:
+      - description: Vehicle type
+        in: query
+        name: vehicle_type
+        type: string
+      - description: Minimum weight capacity
+        in: query
+        name: min_capacity_kg
+        type: number
+      - description: Minimum volume capacity
+        in: query
+        name: min_capacity_m3
+        type: number
+      - description: Requires liftgate
+        in: query
+        name: has_liftgate
+        type: boolean
+      - description: Requires refrigeration
+        in: query
+        name: is_refrigerated
+        type: boolean
+      - description: Requires hazmat certification
+        in: query
+        name: is_hazmat_certified
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Vehicle'
+            type: array
+      summary: Search vehicles
+      tags:
+      - vehicles
 swagger: "2.0"

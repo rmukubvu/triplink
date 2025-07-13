@@ -112,6 +112,1263 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/carriers/{carrier_id}/quotes": {
+            "get": {
+                "description": "Get all quotes created by a specific carrier",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "quotes"
+                ],
+                "summary": "Get quotes by carrier",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Carrier ID",
+                        "name": "carrier_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Quote"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/customs-documents": {
+            "post": {
+                "description": "Create a new customs document for a load",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "customs"
+                ],
+                "summary": "Create customs document",
+                "parameters": [
+                    {
+                        "description": "Customs document data",
+                        "name": "document",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.CustomsDocument"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.CustomsDocument"
+                        }
+                    }
+                }
+            }
+        },
+        "/customs-documents/{id}": {
+            "get": {
+                "description": "Get a specific customs document by its ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "customs"
+                ],
+                "summary": "Get customs document by ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Document ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.CustomsDocument"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Update an existing customs document",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "customs"
+                ],
+                "summary": "Update customs document",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Document ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Updated document data",
+                        "name": "document",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.CustomsDocument"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.CustomsDocument"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete a customs document",
+                "tags": [
+                    "customs"
+                ],
+                "summary": "Delete customs document",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Document ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/loads/{load_id}/bill-of-lading": {
+            "post": {
+                "description": "Generate a bill of lading for a load",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "customs"
+                ],
+                "summary": "Generate bill of lading",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Load ID",
+                        "name": "load_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.CustomsDocument"
+                        }
+                    }
+                }
+            }
+        },
+        "/loads/{load_id}/commercial-invoice": {
+            "post": {
+                "description": "Generate a commercial invoice for a load",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "customs"
+                ],
+                "summary": "Generate commercial invoice",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Load ID",
+                        "name": "load_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.CustomsDocument"
+                        }
+                    }
+                }
+            }
+        },
+        "/loads/{load_id}/customs-documents": {
+            "get": {
+                "description": "Get all customs documents for a specific load",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "customs"
+                ],
+                "summary": "Get customs documents for a load",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Load ID",
+                        "name": "load_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.CustomsDocument"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/loads/{load_id}/packing-list": {
+            "post": {
+                "description": "Generate a packing list for a load",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "customs"
+                ],
+                "summary": "Generate packing list",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Load ID",
+                        "name": "load_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.CustomsDocument"
+                        }
+                    }
+                }
+            }
+        },
+        "/loads/{load_id}/quotes": {
+            "get": {
+                "description": "Get all quotes for a specific load",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "quotes"
+                ],
+                "summary": "Get quotes for a load",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Load ID",
+                        "name": "load_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Quote"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/manifests/{id}": {
+            "get": {
+                "description": "Get a specific manifest by its ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "manifests"
+                ],
+                "summary": "Get manifest by ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Manifest ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Manifest"
+                        }
+                    }
+                }
+            }
+        },
+        "/manifests/{id}/detailed": {
+            "get": {
+                "description": "Get manifest with detailed load information",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "manifests"
+                ],
+                "summary": "Get detailed manifest data",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Manifest ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/manifests/{id}/document": {
+            "put": {
+                "description": "Update the document URL for a manifest (after PDF generation)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "manifests"
+                ],
+                "summary": "Update manifest document URL",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Manifest ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Document URL",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Manifest"
+                        }
+                    }
+                }
+            }
+        },
+        "/notifications": {
+            "post": {
+                "description": "Create a new notification for a user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "notifications"
+                ],
+                "summary": "Create a notification",
+                "parameters": [
+                    {
+                        "description": "Notification data",
+                        "name": "notification",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Notification"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.Notification"
+                        }
+                    }
+                }
+            }
+        },
+        "/notifications/{id}": {
+            "delete": {
+                "description": "Delete a specific notification",
+                "tags": [
+                    "notifications"
+                ],
+                "summary": "Delete notification",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Notification ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/notifications/{id}/read": {
+            "put": {
+                "description": "Mark a specific notification as read",
+                "tags": [
+                    "notifications"
+                ],
+                "summary": "Mark notification as read",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Notification ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Notification"
+                        }
+                    }
+                }
+            }
+        },
+        "/quotes": {
+            "post": {
+                "description": "Create a new quote for a load",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "quotes"
+                ],
+                "summary": "Create a quote",
+                "parameters": [
+                    {
+                        "description": "Quote data",
+                        "name": "quote",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Quote"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.Quote"
+                        }
+                    }
+                }
+            }
+        },
+        "/quotes/{id}": {
+            "put": {
+                "description": "Update an existing quote (only if pending)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "quotes"
+                ],
+                "summary": "Update quote",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Quote ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Updated quote data",
+                        "name": "quote",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Quote"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Quote"
+                        }
+                    }
+                }
+            }
+        },
+        "/quotes/{id}/accept": {
+            "post": {
+                "description": "Accept a quote and create a booking",
+                "tags": [
+                    "quotes"
+                ],
+                "summary": "Accept a quote",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Quote ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Quote"
+                        }
+                    }
+                }
+            }
+        },
+        "/quotes/{id}/reject": {
+            "post": {
+                "description": "Reject a quote",
+                "tags": [
+                    "quotes"
+                ],
+                "summary": "Reject a quote",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Quote ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Quote"
+                        }
+                    }
+                }
+            }
+        },
+        "/reviews": {
+            "post": {
+                "description": "Create a new review for a user after a completed load",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "reviews"
+                ],
+                "summary": "Create a review",
+                "parameters": [
+                    {
+                        "description": "Review data",
+                        "name": "review",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Review"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.Review"
+                        }
+                    }
+                }
+            }
+        },
+        "/reviews/{id}": {
+            "get": {
+                "description": "Get a specific review by its ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "reviews"
+                ],
+                "summary": "Get review by ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Review ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Review"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Update an existing review (only by the reviewer)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "reviews"
+                ],
+                "summary": "Update review",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Review ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Updated review data",
+                        "name": "review",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Review"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Review"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete a review (only by the reviewer)",
+                "tags": [
+                    "reviews"
+                ],
+                "summary": "Delete review",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Review ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/trips/{trip_id}/customs-summary": {
+            "get": {
+                "description": "Get a summary of all customs documents for loads in a trip",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "customs"
+                ],
+                "summary": "Get customs documents summary for trip",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Trip ID",
+                        "name": "trip_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/trips/{trip_id}/manifest": {
+            "get": {
+                "description": "Get the manifest for a specific trip",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "manifests"
+                ],
+                "summary": "Get manifest by trip ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Trip ID",
+                        "name": "trip_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Manifest"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Generate a consolidated manifest for all loads in a trip",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "manifests"
+                ],
+                "summary": "Generate manifest for a trip",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Trip ID",
+                        "name": "trip_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Manifest"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/{user_id}/notifications": {
+            "get": {
+                "description": "Get all notifications for a specific user",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "notifications"
+                ],
+                "summary": "Get user notifications",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "User ID",
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Show only unread notifications",
+                        "name": "unread_only",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Notification"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/users/{user_id}/notifications/count": {
+            "get": {
+                "description": "Get notification counts for a user (total and unread)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "notifications"
+                ],
+                "summary": "Get notification counts",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "User ID",
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/users/{user_id}/notifications/read-all": {
+            "put": {
+                "description": "Mark all notifications for a user as read",
+                "tags": [
+                    "notifications"
+                ],
+                "summary": "Mark all notifications as read",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "User ID",
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/users/{user_id}/rating-summary": {
+            "get": {
+                "description": "Get rating summary and statistics for a user",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "reviews"
+                ],
+                "summary": "Get user rating summary",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "User ID",
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/users/{user_id}/reviews": {
+            "get": {
+                "description": "Get all reviews for a specific user",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "reviews"
+                ],
+                "summary": "Get reviews for a user",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "User ID",
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Review"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/users/{user_id}/reviews-given": {
+            "get": {
+                "description": "Get all reviews written by a specific user",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "reviews"
+                ],
+                "summary": "Get reviews by a user",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "User ID",
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Review"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/users/{user_id}/vehicles": {
+            "get": {
+                "description": "Get all vehicles belonging to a specific user",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "vehicles"
+                ],
+                "summary": "Get all vehicles for a user",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "User ID",
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Vehicle"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/vehicles": {
+            "post": {
+                "description": "Create a new vehicle for a carrier",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "vehicles"
+                ],
+                "summary": "Create a new vehicle",
+                "parameters": [
+                    {
+                        "description": "Vehicle data",
+                        "name": "vehicle",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Vehicle"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.Vehicle"
+                        }
+                    }
+                }
+            }
+        },
+        "/vehicles/search": {
+            "get": {
+                "description": "Search for available vehicles by type, capacity, and location",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "vehicles"
+                ],
+                "summary": "Search vehicles",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Vehicle type",
+                        "name": "vehicle_type",
+                        "in": "query"
+                    },
+                    {
+                        "type": "number",
+                        "description": "Minimum weight capacity",
+                        "name": "min_capacity_kg",
+                        "in": "query"
+                    },
+                    {
+                        "type": "number",
+                        "description": "Minimum volume capacity",
+                        "name": "min_capacity_m3",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Requires liftgate",
+                        "name": "has_liftgate",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Requires refrigeration",
+                        "name": "is_refrigerated",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Requires hazmat certification",
+                        "name": "is_hazmat_certified",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Vehicle"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/vehicles/{id}": {
+            "get": {
+                "description": "Get a specific vehicle by its ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "vehicles"
+                ],
+                "summary": "Get vehicle by ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Vehicle ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Vehicle"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Update an existing vehicle",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "vehicles"
+                ],
+                "summary": "Update vehicle",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Vehicle ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Updated vehicle data",
+                        "name": "vehicle",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Vehicle"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Vehicle"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Soft delete a vehicle (set is_active to false)",
+                "tags": [
+                    "vehicles"
+                ],
+                "summary": "Delete vehicle",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Vehicle ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -134,7 +1391,7 @@ const docTemplate = `{
                 }
             }
         },
-        "models.User": {
+        "models.CustomsDocument": {
             "type": "object",
             "properties": {
                 "created_at": {
@@ -143,21 +1400,373 @@ const docTemplate = `{
                 "deleted_at": {
                     "type": "string"
                 },
-                "email": {
+                "document_number": {
+                    "type": "string"
+                },
+                "document_type": {
+                    "description": "COMMERCIAL_INVOICE, PACKING_LIST, BOL, CUSTOMS_DECLARATION, CERTIFICATE_OF_ORIGIN",
+                    "type": "string"
+                },
+                "document_url": {
+                    "type": "string"
+                },
+                "expiry_date": {
                     "type": "string"
                 },
                 "id": {
                     "type": "integer"
                 },
+                "issued_date": {
+                    "type": "string"
+                },
+                "issuing_authority": {
+                    "type": "string"
+                },
+                "load_id": {
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.Manifest": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "deleted_at": {
+                    "type": "string"
+                },
+                "destination_country": {
+                    "type": "string"
+                },
+                "document_url": {
+                    "type": "string"
+                },
+                "generated_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "load_count": {
+                    "type": "integer"
+                },
+                "manifest_number": {
+                    "type": "string"
+                },
+                "origin_country": {
+                    "type": "string"
+                },
+                "total_value": {
+                    "type": "number"
+                },
+                "total_volume": {
+                    "type": "number"
+                },
+                "total_weight": {
+                    "type": "number"
+                },
+                "trip_id": {
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.Notification": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "deleted_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_read": {
+                    "type": "boolean"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "related_id": {
+                    "description": "ID of related load, trip, etc.",
+                    "type": "integer"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "type": {
+                    "description": "QUOTE_RECEIVED, LOAD_BOOKED, PICKUP_SCHEDULED, etc.",
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.Quote": {
+            "type": "object",
+            "properties": {
+                "accepted_at": {
+                    "type": "string"
+                },
+                "carrier_id": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "deleted_at": {
+                    "type": "string"
+                },
+                "delivery_date": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "load_id": {
+                    "type": "integer"
+                },
+                "notes": {
+                    "type": "string"
+                },
+                "pickup_date": {
+                    "type": "string"
+                },
+                "quote_amount": {
+                    "type": "number"
+                },
+                "status": {
+                    "description": "PENDING, ACCEPTED, REJECTED, EXPIRED",
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "valid_until": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.Review": {
+            "type": "object",
+            "properties": {
+                "comment": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "deleted_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "load_id": {
+                    "type": "integer"
+                },
+                "rating": {
+                    "description": "1-5 stars",
+                    "type": "integer"
+                },
+                "review_type": {
+                    "description": "CARRIER_TO_SHIPPER, SHIPPER_TO_CARRIER",
+                    "type": "string"
+                },
+                "reviewee_id": {
+                    "type": "integer"
+                },
+                "reviewer_id": {
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.User": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "business_license": {
+                    "type": "string"
+                },
+                "city": {
+                    "type": "string"
+                },
+                "company_name": {
+                    "type": "string"
+                },
+                "country": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "deleted_at": {
+                    "type": "string"
+                },
+                "driver_license": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "first_name": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_verified": {
+                    "type": "boolean"
+                },
+                "last_name": {
+                    "type": "string"
+                },
+                "license_expiry": {
+                    "type": "string"
+                },
+                "license_number": {
+                    "type": "string"
+                },
                 "phone": {
                     "type": "string"
+                },
+                "postal_code": {
+                    "type": "string"
+                },
+                "profile_image": {
+                    "type": "string"
+                },
+                "rating": {
+                    "type": "number"
                 },
                 "role": {
                     "description": "CARRIER, SHIPPER, ADMIN",
                     "type": "string"
                 },
+                "state": {
+                    "type": "string"
+                },
+                "tax_id": {
+                    "type": "string"
+                },
+                "total_reviews": {
+                    "type": "integer"
+                },
                 "updated_at": {
                     "type": "string"
+                },
+                "vehicles": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Vehicle"
+                    }
+                }
+            }
+        },
+        "models.Vehicle": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "deleted_at": {
+                    "type": "string"
+                },
+                "has_liftgate": {
+                    "type": "boolean"
+                },
+                "has_straps": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "images": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "inspection_expiry": {
+                    "type": "string"
+                },
+                "insurance_expiry": {
+                    "type": "string"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "is_food_grade": {
+                    "type": "boolean"
+                },
+                "is_hazmat_certified": {
+                    "type": "boolean"
+                },
+                "is_refrigerated": {
+                    "type": "boolean"
+                },
+                "license_plate": {
+                    "type": "string"
+                },
+                "load_capacity_kg": {
+                    "type": "number"
+                },
+                "load_capacity_m3": {
+                    "type": "number"
+                },
+                "make": {
+                    "type": "string"
+                },
+                "max_height": {
+                    "type": "number"
+                },
+                "max_length": {
+                    "type": "number"
+                },
+                "max_width": {
+                    "type": "number"
+                },
+                "model": {
+                    "type": "string"
+                },
+                "registration_expiry": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "integer"
+                },
+                "vehicle_type": {
+                    "description": "FLATBED, REEFER, DRY_VAN, TANKER, BOX_TRUCK",
+                    "type": "string"
+                },
+                "vin": {
+                    "type": "string"
+                },
+                "year": {
+                    "type": "integer"
                 }
             }
         }

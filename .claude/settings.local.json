@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(lsof:*)",
+      "Bash(go run:*)",
+      "Bash(swag init:*)",
+      "Bash(pkill:*)",
+      "Bash(grep:*)",
+      "Bash(kill:*)"
+    ],
+    "deny": []
+  }
+}
