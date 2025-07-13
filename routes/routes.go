@@ -70,4 +70,5 @@ func Setup(app *fiber.App) {
 
 	// Swagger
 	app.Get("/swagger/*", swagger.HandlerDefault) // default
+	app.Static("/docs", "./docs")                 // Serve swagger files directly
 }
