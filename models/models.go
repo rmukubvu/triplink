@@ -69,8 +69,17 @@ type Trip struct {
 	Status              string     `json:"status"` // PLANNED, ACTIVE, IN_TRANSIT, COMPLETED, CANCELLED
 	Notes               string     `json:"notes"`
 	IsPublic            bool       `gorm:"default:true" json:"is_public"`
-	Loads               []Load     `json:"loads,omitempty" gorm:"foreignKey:TripID"`
-	Manifest            *Manifest  `json:"manifest,omitempty" gorm:"foreignKey:TripID"`
+	// Tracking fields
+	CurrentLatitude    *float64   `json:"current_latitude"`
+	CurrentLongitude   *float64   `json:"current_longitude"`
+	LastLocationUpdate *time.Time `json:"last_location_update"`
+	TrackingEnabled    bool       `gorm:"default:true" json:"tracking_enabled"`
+	// Relationships
+	Loads           []Load           `json:"loads,omitempty" gorm:"foreignKey:TripID"`
+	Manifest        *Manifest        `json:"manifest,omitempty" gorm:"foreignKey:TripID"`
+	TrackingRecords []TrackingRecord `json:"tracking_records,omitempty" gorm:"foreignKey:TripID"`
+	TrackingStatus  *TrackingStatus  `json:"tracking_status,omitempty" gorm:"foreignKey:TripID"`
+	TrackingEvents  []TrackingEvent  `json:"tracking_events,omitempty" gorm:"foreignKey:TripID"`
 }
 
 type Load struct {
@@ -117,6 +126,10 @@ type Load struct {
 	DeliveryProof         string            `json:"delivery_proof"`
 	CustomsDocuments      []CustomsDocument `json:"customs_documents,omitempty" gorm:"foreignKey:LoadID"`
 	Quotes                []Quote           `json:"quotes,omitempty" gorm:"foreignKey:LoadID"`
+	// Tracking relationships
+	TrackingRecords []TrackingRecord `json:"tracking_records,omitempty" gorm:"foreignKey:LoadID"`
+	TrackingStatus  *TrackingStatus  `json:"tracking_status,omitempty" gorm:"foreignKey:LoadID"`
+	TrackingEvents  []TrackingEvent  `json:"tracking_events,omitempty" gorm:"foreignKey:LoadID"`
 }
 
 type Message struct {
@@ -225,4 +238,48 @@ type Transaction struct {
 	Status         string     `json:"status"` // PENDING, COMPLETED, FAILED, REFUNDED
 	ProcessedAt    *time.Time `json:"processed_at"`
 	FailureReason  string     `json:"failure_reason"`
+}
+
+// Tracking Models
+
+type TrackingRecord struct {
+	BaseModel
+	TripID    uint      `json:"trip_id"`
+	LoadID    *uint     `json:"load_id,omitempty"`
+	Latitude  float64   `json:"latitude"`
+	Longitude float64   `json:"longitude"`
+	Altitude  *float64  `json:"altitude,omitempty"`
+	Speed     *float64  `json:"speed,omitempty"`
+	Heading   *float64  `json:"heading,omitempty"`
+	Accuracy  *float64  `json:"accuracy,omitempty"`
+	Timestamp time.Time `json:"timestamp"`
+	Source    string    `json:"source"` // GPS, MANUAL, ESTIMATED
+	Status    string    `json:"status"` // ACTIVE, INACTIVE
+}
+
+type TrackingStatus struct {
+	BaseModel
+	TripID            uint       `json:"trip_id"`
+	LoadID            *uint      `json:"load_id,omitempty"`
+	CurrentStatus     string     `json:"current_status"`
+	PreviousStatus    string     `json:"previous_status"`
+	StatusChangedAt   time.Time  `json:"status_changed_at"`
+	EstimatedArrival  *time.Time `json:"estimated_arrival"`
+	DelayMinutes      *int       `json:"delay_minutes"`
+	DelayReason       string     `json:"delay_reason"`
+	NextMilestone     string     `json:"next_milestone"`
+	CompletionPercent float64    `json:"completion_percent"`
+}
+
+type TrackingEvent struct {
+	BaseModel
+	TripID      uint      `json:"trip_id"`
+	LoadID      *uint     `json:"load_id,omitempty"`
+	EventType   string    `json:"event_type"` // DEPARTURE, ARRIVAL, DELAY, MILESTONE
+	EventData   string    `json:"event_data"` // JSON data specific to event
+	Location    string    `json:"location"`
+	Latitude    *float64  `json:"latitude"`
+	Longitude   *float64  `json:"longitude"`
+	Timestamp   time.Time `json:"timestamp"`
+	Description string    `json:"description"`
 }
