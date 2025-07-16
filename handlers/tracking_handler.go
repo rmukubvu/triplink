@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"math"
 	"strconv"
 	"time"
 	"triplink/backend/database"
@@ -1563,7 +1564,7 @@ func getDelayAnalysis(tripID uint) map[string]interface{} {
 	totalDelayMinutes := 0
 	delayReasons := make(map[string]int)
 
-	for _, event := range delayEvents {
+	for range delayEvents {
 		// Parse delay minutes from event data (simplified)
 		// In real implementation, would properly parse JSON
 		totalDelayMinutes += 30   // Placeholder
@@ -1754,4 +1755,27 @@ func min(a, b float64) float64 {
 		return a
 	}
 	return b
+}
+
+// calculateDistance calculates the distance between two coordinates using Haversine formula
+func calculateDistance(lat1, lng1, lat2, lng2 float64) float64 {
+	const earthRadius = 6371 // Earth's radius in kilometers
+
+	// Convert degrees to radians
+	lat1Rad := lat1 * math.Pi / 180
+	lng1Rad := lng1 * math.Pi / 180
+	lat2Rad := lat2 * math.Pi / 180
+	lng2Rad := lng2 * math.Pi / 180
+
+	// Calculate differences
+	deltaLat := lat2Rad - lat1Rad
+	deltaLng := lng2Rad - lng1Rad
+
+	// Haversine formula
+	a := math.Sin(deltaLat/2)*math.Sin(deltaLat/2) +
+		math.Cos(lat1Rad)*math.Cos(lat2Rad)*
+			math.Sin(deltaLng/2)*math.Sin(deltaLng/2)
+	c := 2 * math.Atan2(math.Sqrt(a), math.Sqrt(1-a))
+
+	return earthRadius * c
 }
