@@ -1,0 +1,15 @@
+{
+	"folders": [
+		{
+			"path": ".."
+		},
+		{
+			"path": "../../triplink-mobile"
+		},
+		{
+			"path": "../../triplink-web-react"
+		}
+	],
+	"settings": {
+	}
+}
