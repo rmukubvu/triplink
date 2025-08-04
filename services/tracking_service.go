@@ -6,8 +6,9 @@ import (
 	"math"
 	"strings"
 	"time"
-	"triplink/backend/database"
 	"triplink/backend/models"
+	
+	"gorm.io/gorm"
 )
 
 // LocationUpdate represents a location update request
@@ -29,11 +30,13 @@ type DelayInfo struct {
 }
 
 // TrackingService provides tracking-related operations
-type TrackingService struct{}
+type TrackingService struct{
+	db *gorm.DB
+}
 
 // NewTrackingService creates a new tracking service instance
-func NewTrackingService() *TrackingService {
-	return &TrackingService{}
+func NewTrackingService(db *gorm.DB) *TrackingService {
+	return &TrackingService{db: db}
 }
 
 // UpdateLocation updates the location for a trip
@@ -58,13 +61,13 @@ func (ts *TrackingService) UpdateLocation(tripID uint, location LocationUpdate) 
 	}
 
 	// Save tracking record
-	if err := database.DB.Create(&trackingRecord).Error; err != nil {
+	if err := ts.db.Create(&trackingRecord).Error; err != nil {
 		return err
 	}
 
 	// Update trip's current location
 	now := time.Now()
-	err := database.DB.Model(&models.Trip{}).Where("id = ?", tripID).Updates(map[string]interface{}{
+	err := ts.db.Model(&models.Trip{}).Where("id = ?", tripID).Updates(map[string]interface{}{
 		"current_latitude":     location.Latitude,
 		"current_longitude":    location.Longitude,
 		"last_location_update": &now,
@@ -82,9 +85,7 @@ func (ts *TrackingService) UpdateLocation(tripID uint, location LocationUpdate) 
 // GetCurrentLocation retrieves the most recent location for a trip
 func (ts *TrackingService) GetCurrentLocation(tripID uint) (*models.TrackingRecord, error) {
 	var trackingRecord models.TrackingRecord
-	err := database.DB.Where("trip_id = ?", tripID).
-		Order("timestamp DESC").
-		First(&trackingRecord).Error
+	err := ts.db.Where("trip_id = ?", tripID).Order("timestamp DESC").First(&trackingRecord).Error
 
 	if err != nil {
 		return nil, err
@@ -96,7 +97,7 @@ func (ts *TrackingService) GetCurrentLocation(tripID uint) (*models.TrackingReco
 // CalculateETA calculates estimated time of arrival based on current location
 func (ts *TrackingService) CalculateETA(tripID uint) (*time.Time, error) {
 	var trip models.Trip
-	if err := database.DB.First(&trip, tripID).Error; err != nil {
+	if err := ts.db.First(&trip, tripID).Error; err != nil {
 		return nil, err
 	}
 
@@ -114,7 +115,7 @@ func (ts *TrackingService) CalculateETA(tripID uint) (*time.Time, error) {
 
 	// Get recent tracking records to calculate average speed
 	var recentRecords []models.TrackingRecord
-	database.DB.Where("trip_id = ? AND speed IS NOT NULL", tripID).
+	ts.db.Where("trip_id = ? AND speed IS NOT NULL", tripID).
 		Order("timestamp DESC").
 		Limit(5).
 		Find(&recentRecords)
@@ -139,7 +140,7 @@ func (ts *TrackingService) CalculateETA(tripID uint) (*time.Time, error) {
 	eta := time.Now().Add(time.Duration(hoursToDestination * float64(time.Hour)))
 
 	// Update trip's estimated arrival
-	database.DB.Model(&trip).Update("estimated_arrival", eta)
+	ts.db.Model(&trip).Update("estimated_arrival", eta)
 
 	return &eta, nil
 }
@@ -147,7 +148,7 @@ func (ts *TrackingService) CalculateETA(tripID uint) (*time.Time, error) {
 // UpdateTripStatus updates the status of a trip with validation
 func (ts *TrackingService) UpdateTripStatus(tripID uint, newStatus string) error {
 	var trip models.Trip
-	if err := database.DB.First(&trip, tripID).Error; err != nil {
+	if err := ts.db.First(&trip, tripID).Error; err != nil {
 		return err
 	}
 
@@ -160,7 +161,7 @@ func (ts *TrackingService) UpdateTripStatus(tripID uint, newStatus string) error
 	previousStatus := trip.Status
 	now := time.Now()
 
-	err := database.DB.Model(&trip).Updates(map[string]interface{}{
+	err := ts.db.Model(&trip).Updates(map[string]interface{}{
 		"status": newStatus,
 	}).Error
 
@@ -170,7 +171,7 @@ func (ts *TrackingService) UpdateTripStatus(tripID uint, newStatus string) error
 
 	// Create or update tracking status record
 	var trackingStatus models.TrackingStatus
-	result := database.DB.Where("trip_id = ?", tripID).First(&trackingStatus)
+	result := ts.db.Where("trip_id = ?", tripID).First(&trackingStatus)
 
 	if result.Error != nil {
 		// Create new tracking status
@@ -181,14 +182,14 @@ func (ts *TrackingService) UpdateTripStatus(tripID uint, newStatus string) error
 			StatusChangedAt:   now,
 			CompletionPercent: calculateCompletionPercent(newStatus),
 		}
-		database.DB.Create(&trackingStatus)
+		ts.db.Create(&trackingStatus)
 	} else {
 		// Update existing tracking status
 		trackingStatus.PreviousStatus = trackingStatus.CurrentStatus
 		trackingStatus.CurrentStatus = newStatus
 		trackingStatus.StatusChangedAt = now
 		trackingStatus.CompletionPercent = calculateCompletionPercent(newStatus)
-		database.DB.Save(&trackingStatus)
+		ts.db.Save(&trackingStatus)
 	}
 
 	// Create tracking event
@@ -200,7 +201,7 @@ func (ts *TrackingService) UpdateTripStatus(tripID uint, newStatus string) error
 		Timestamp:   now,
 		Description: "Trip status changed from " + previousStatus + " to " + newStatus,
 	}
-	database.DB.Create(&event)
+	ts.db.Create(&event)
 
 	return nil
 }
@@ -208,7 +209,7 @@ func (ts *TrackingService) UpdateTripStatus(tripID uint, newStatus string) error
 // CheckForDelays checks if a trip is delayed and returns delay information
 func (ts *TrackingService) CheckForDelays(tripID uint) (*DelayInfo, error) {
 	var trip models.Trip
-	if err := database.DB.First(&trip, tripID).Error; err != nil {
+	if err := ts.db.First(&trip, tripID).Error; err != nil {
 		return nil, err
 	}
 
@@ -266,7 +267,7 @@ func (ts *TrackingService) ProcessDelayAlerts(tripID uint) error {
 	if shouldAlert {
 		// Get all shippers on this trip and send delay notifications
 		var loads []models.Load
-		if err := database.DB.Where("trip_id = ?", tripID).Find(&loads).Error; err != nil {
+		if err := ts.db.Where("trip_id = ?", tripID).Find(&loads).Error; err != nil {
 			return err
 		}
 
@@ -279,7 +280,7 @@ func (ts *TrackingService) ProcessDelayAlerts(tripID uint) error {
 				Type:      "TRIP_DELAYED",
 				RelatedID: tripID,
 			}
-			database.DB.Create(&notification)
+			ts.db.Create(&notification)
 		}
 
 		// Create tracking event for delay
@@ -291,7 +292,7 @@ func (ts *TrackingService) ProcessDelayAlerts(tripID uint) error {
 			Timestamp:   time.Now(),
 			Description: fmt.Sprintf("Trip delayed by %d minutes - %s", delayInfo.DelayMinutes, delayInfo.Reason),
 		}
-		database.DB.Create(&event)
+		ts.db.Create(&event)
 
 		// Update tracking status with delay information
 		ts.updateDelayStatus(tripID, delayInfo.DelayMinutes, delayInfo.Reason)
@@ -303,7 +304,7 @@ func (ts *TrackingService) ProcessDelayAlerts(tripID uint) error {
 // updateDelayStatus updates the tracking status with delay information
 func (ts *TrackingService) updateDelayStatus(tripID uint, delayMinutes int, reason string) error {
 	var trackingStatus models.TrackingStatus
-	result := database.DB.Where("trip_id = ?", tripID).First(&trackingStatus)
+	result := ts.db.Where("trip_id = ?", tripID).First(&trackingStatus)
 
 	if result.Error != nil {
 		// Create new tracking status with delay info
@@ -314,7 +315,7 @@ func (ts *TrackingService) updateDelayStatus(tripID uint, delayMinutes int, reas
 			DelayReason:     reason,
 			StatusChangedAt: time.Now(),
 		}
-		return database.DB.Create(&trackingStatus).Error
+		return ts.db.Create(&trackingStatus).Error
 	} else {
 		// Update existing tracking status
 		trackingStatus.DelayMinutes = &delayMinutes
@@ -324,14 +325,14 @@ func (ts *TrackingService) updateDelayStatus(tripID uint, delayMinutes int, reas
 			trackingStatus.CurrentStatus = "DELAYED"
 			trackingStatus.StatusChangedAt = time.Now()
 		}
-		return database.DB.Save(&trackingStatus).Error
+		return ts.db.Save(&trackingStatus).Error
 	}
 }
 
 // hasDelayAlertBeenSent checks if a delay alert has already been sent for a specific threshold
 func (ts *TrackingService) hasDelayAlertBeenSent(tripID uint, thresholdMinutes int) bool {
 	var count int64
-	database.DB.Model(&models.TrackingEvent{}).
+	ts.db.Model(&models.TrackingEvent{}).
 		Where("trip_id = ? AND event_type = 'DELAY' AND event_data LIKE ?",
 			tripID, fmt.Sprintf("%%\"delay_minutes\":%d%%", thresholdMinutes)).
 		Count(&count)
@@ -350,7 +351,7 @@ func (ts *TrackingService) DetectAnomalies(tripID uint) ([]string, error) {
 
 	// Get recent tracking records
 	var records []models.TrackingRecord
-	err := database.DB.Where("trip_id = ?", tripID).
+	err := ts.db.Where("trip_id = ?", tripID).
 		Order("timestamp DESC").
 		Limit(10).
 		Find(&records).Error
@@ -418,7 +419,7 @@ type TrackingFilters struct {
 
 // GetTrackingHistory retrieves tracking history with optional filters
 func (ts *TrackingService) GetTrackingHistory(tripID uint, filters TrackingFilters) ([]models.TrackingRecord, error) {
-	query := database.DB.Where("trip_id = ?", tripID)
+	query := ts.db.Where("trip_id = ?", tripID)
 
 	// Apply filters
 	if filters.StartDate != nil {
@@ -456,7 +457,7 @@ func (ts *TrackingService) GetTrackingHistory(tripID uint, filters TrackingFilte
 
 // GetTrackingEvents retrieves tracking events with optional filters
 func (ts *TrackingService) GetTrackingEvents(tripID uint, eventTypes []string, limit int) ([]models.TrackingEvent, error) {
-	query := database.DB.Where("trip_id = ?", tripID)
+	query := ts.db.Where("trip_id = ?", tripID)
 
 	if len(eventTypes) > 0 {
 		query = query.Where("event_type IN ?", eventTypes)
@@ -488,20 +489,20 @@ func (ts *TrackingService) LogTrackingEvent(tripID uint, loadID *uint, eventType
 		Description: description,
 	}
 
-	return database.DB.Create(&event).Error
+	return ts.db.Create(&event).Error
 }
 
 // GetAuditTrail provides a comprehensive audit trail of all tracking activities
 func (ts *TrackingService) GetAuditTrail(tripID uint, includeSystemEvents bool) (map[string]interface{}, error) {
 	// Get all tracking records
 	var trackingRecords []models.TrackingRecord
-	database.DB.Where("trip_id = ?", tripID).
+	ts.db.Where("trip_id = ?", tripID).
 		Order("timestamp ASC").
 		Find(&trackingRecords)
 
 	// Get all tracking events
 	var trackingEvents []models.TrackingEvent
-	query := database.DB.Where("trip_id = ?", tripID)
+	query := ts.db.Where("trip_id = ?", tripID)
 	if !includeSystemEvents {
 		query = query.Where("event_type NOT IN ?", []string{"SYSTEM_UPDATE", "AUTO_CALCULATION"})
 	}
@@ -509,7 +510,7 @@ func (ts *TrackingService) GetAuditTrail(tripID uint, includeSystemEvents bool) 
 
 	// Get status changes
 	var statusChanges []models.TrackingStatus
-	database.DB.Where("trip_id = ?", tripID).
+	ts.db.Where("trip_id = ?", tripID).
 		Order("status_changed_at ASC").
 		Find(&statusChanges)
 
@@ -572,14 +573,14 @@ func (ts *TrackingService) CleanupOldTrackingData(retentionDays int) error {
 	cutoffDate := time.Now().AddDate(0, 0, -retentionDays)
 
 	// Delete old tracking records
-	result := database.DB.Where("timestamp < ?", cutoffDate).Delete(&models.TrackingRecord{})
+	result := ts.db.Where("timestamp < ?", cutoffDate).Delete(&models.TrackingRecord{})
 	if result.Error != nil {
 		return result.Error
 	}
 
 	// Delete old tracking events (keep critical events longer)
 	criticalEvents := []string{"DEPARTURE", "ARRIVAL", "DELAY", "EXCEPTION"}
-	database.DB.Where("timestamp < ? AND event_type NOT IN ?", cutoffDate, criticalEvents).Delete(&models.TrackingEvent{})
+	ts.db.Where("timestamp < ? AND event_type NOT IN ?", cutoffDate, criticalEvents).Delete(&models.TrackingEvent{})
 
 	// Log cleanup activity
 	ts.LogTrackingEvent(0, nil, "SYSTEM_CLEANUP",
@@ -595,7 +596,7 @@ func (ts *TrackingService) GetTrackingStatistics(tripID uint) (map[string]interf
 
 	// Count tracking records
 	var recordCount int64
-	database.DB.Model(&models.TrackingRecord{}).Where("trip_id = ?", tripID).Count(&recordCount)
+	ts.db.Model(&models.TrackingRecord{}).Where("trip_id = ?", tripID).Count(&recordCount)
 	stats["total_location_updates"] = recordCount
 
 	// Count tracking events by type
@@ -603,7 +604,7 @@ func (ts *TrackingService) GetTrackingStatistics(tripID uint) (map[string]interf
 		EventType string `json:"event_type"`
 		Count     int64  `json:"count"`
 	}
-	database.DB.Model(&models.TrackingEvent{}).
+	ts.db.Model(&models.TrackingEvent{}).
 		Select("event_type, count(*) as count").
 		Where("trip_id = ?", tripID).
 		Group("event_type").
@@ -612,8 +613,8 @@ func (ts *TrackingService) GetTrackingStatistics(tripID uint) (map[string]interf
 
 	// Get first and last location updates
 	var firstRecord, lastRecord models.TrackingRecord
-	database.DB.Where("trip_id = ?", tripID).Order("timestamp ASC").First(&firstRecord)
-	database.DB.Where("trip_id = ?", tripID).Order("timestamp DESC").First(&lastRecord)
+	ts.db.Where("trip_id = ?", tripID).Order("timestamp ASC").First(&firstRecord)
+	ts.db.Where("trip_id = ?", tripID).Order("timestamp DESC").First(&lastRecord)
 
 	if firstRecord.ID != 0 {
 		stats["first_update"] = firstRecord.Timestamp
@@ -634,7 +635,7 @@ func (ts *TrackingService) GetTrackingStatistics(tripID uint) (map[string]interf
 		MinSpeed *float64 `json:"min_speed"`
 		AvgSpeed *float64 `json:"avg_speed"`
 	}
-	database.DB.Model(&models.TrackingRecord{}).
+	ts.db.Model(&models.TrackingRecord{}).
 		Select("MAX(speed) as max_speed, MIN(speed) as min_speed, AVG(speed) as avg_speed").
 		Where("trip_id = ? AND speed IS NOT NULL", tripID).
 		Scan(&speedStats)
@@ -652,10 +653,10 @@ func (ts *TrackingService) GetTrackingStatistics(tripID uint) (map[string]interf
 func (ts *TrackingService) ExportTrackingData(tripID uint, format string) (interface{}, error) {
 	// Get all tracking data
 	var records []models.TrackingRecord
-	database.DB.Where("trip_id = ?", tripID).Order("timestamp ASC").Find(&records)
+	ts.db.Where("trip_id = ?", tripID).Order("timestamp ASC").Find(&records)
 
 	var events []models.TrackingEvent
-	database.DB.Where("trip_id = ?", tripID).Order("timestamp ASC").Find(&events)
+	ts.db.Where("trip_id = ?", tripID).Order("timestamp ASC").Find(&events)
 
 	switch format {
 	case "json":
@@ -858,7 +859,7 @@ func (ts *TrackingService) ValidateTrackingConsistency(tripID uint) []string {
 
 	// Get recent tracking records
 	var records []models.TrackingRecord
-	database.DB.Where("trip_id = ?", tripID).
+	ts.db.Where("trip_id = ?", tripID).
 		Order("timestamp DESC").
 		Limit(10).
 		Find(&records)
@@ -937,7 +938,7 @@ func (ts *TrackingService) requestLocationUpdate(tripID uint) error {
 // useLastKnownLocation falls back to the last known good location
 func (ts *TrackingService) useLastKnownLocation(tripID uint) error {
 	var lastGoodRecord models.TrackingRecord
-	err := database.DB.Where("trip_id = ? AND status = 'ACTIVE'", tripID).
+	err := ts.db.Where("trip_id = ? AND status = 'ACTIVE'", tripID).
 		Order("timestamp DESC").
 		First(&lastGoodRecord).Error
 

@@ -7,9 +7,9 @@ import (
 	"triplink/backend/models"
 )
 
-var DB *gorm.DB
+// DB is no longer a global variable. Functions will receive it as a parameter.
 
-func Connect() {
+func Connect() *gorm.DB {
 	dsn := "host=localhost user=wowcard password=password dbname=triplink port=5432 sslmode=disable"
 	database, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 
@@ -31,7 +31,10 @@ func Connect() {
 		&models.Notification{},
 		&models.Manifest{},
 		&models.CustomsDocument{},
+		&models.NotificationToken{},
+		&models.NotificationPreferences{},
+		&models.NotificationDelivery{},
 	)
 
-	DB = database
+	return database
 }

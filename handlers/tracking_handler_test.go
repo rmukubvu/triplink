@@ -9,28 +9,40 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/suite"
 )
 
-// Test data setup
-func setupTestApp() *fiber.App {
-	app := fiber.New()
+type TrackingHandlerTestSuite struct {
+	suite.Suite
+	app *fiber.App
+}
+
+func (suite *TrackingHandlerTestSuite) SetupSuite() {
+}
+
+func (suite *TrackingHandlerTestSuite) SetupTest() {
+	clearTestDB()
+	seedTestDB()
+	suite.app = fiber.New()
 
 	// Add tracking routes
-	app.Post("/trips/:trip_id/tracking/location", UpdateTripLocation)
-	app.Get("/trips/:trip_id/tracking/current", GetCurrentTripLocation)
-	app.Get("/trips/:trip_id/tracking/history", GetTripTrackingHistory)
-	app.Put("/trips/:trip_id/tracking/status", UpdateTripStatus)
-	app.Get("/trips/:trip_id/tracking/eta", GetTripETA)
-	app.Get("/loads/:load_id/tracking", GetLoadTracking)
-	app.Get("/users/:user_id/tracking/active", GetUserActiveTrackings)
-	app.Get("/mobile/trips/:trip_id/tracking", GetLightweightTracking)
+	suite.app.Post("/trips/:trip_id/tracking/location", UpdateTripLocation)
+	suite.app.Get("/trips/:trip_id/tracking/current", GetCurrentTripLocation)
+	suite.app.Get("/trips/:trip_id/tracking/history", GetTripTrackingHistory)
+	suite.app.Put("/trips/:trip_id/tracking/status", UpdateTripStatus)
+	suite.app.Get("/trips/:trip_id/tracking/eta", GetTripETA)
+	suite.app.Get("/loads/:load_id/tracking", GetLoadTracking)
+	suite.app.Get("/users/:user_id/tracking/active", GetUserActiveTrackings)
+	suite.app.Get("/mobile/trips/:trip_id/tracking", GetLightweightTracking)
+}
 
-	return app
+func (suite *TrackingHandlerTestSuite) TearDownTest() {
+	clearTestDB()
 }
 
 // Test UpdateTripLocation endpoint
-func TestUpdateTripLocation(t *testing.T) {
-	app := setupTestApp()
+func (suite *TrackingHandlerTestSuite) TestUpdateTripLocation() {
+	t := suite.T()
 
 	tests := []struct {
 		name           string
@@ -56,7 +68,7 @@ func TestUpdateTripLocation(t *testing.T) {
 				Longitude: -74.0060,
 				Source:    "GPS",
 			},
-			expectedStatus: 500, // Would fail in service validation
+			expectedStatus: 400,
 		},
 		{
 			name:           "Invalid trip ID",
@@ -80,7 +92,7 @@ func TestUpdateTripLocation(t *testing.T) {
 			req := httptest.NewRequest("POST", "/trips/"+tt.tripID+"/tracking/location", bytes.NewBuffer(jsonData))
 			req.Header.Set("Content-Type", "application/json")
 
-			resp, err := app.Test(req)
+			resp, err := suite.app.Test(req)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 		})
@@ -88,8 +100,8 @@ func TestUpdateTripLocation(t *testing.T) {
 }
 
 // Test GetCurrentTripLocation endpoint
-func TestGetCurrentTripLocation(t *testing.T) {
-	app := setupTestApp()
+func (suite *TrackingHandlerTestSuite) TestGetCurrentTripLocation() {
+	t := suite.T()
 
 	tests := []struct {
 		name           string
@@ -99,7 +111,7 @@ func TestGetCurrentTripLocation(t *testing.T) {
 		{
 			name:           "Valid trip ID",
 			tripID:         "1",
-			expectedStatus: 404, // No data in test environment
+			expectedStatus: 200, // Should find a trip now
 		},
 		{
 			name:           "Invalid trip ID",
@@ -111,7 +123,7 @@ func TestGetCurrentTripLocation(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			req := httptest.NewRequest("GET", "/trips/"+tt.tripID+"/tracking/current", nil)
-			resp, err := app.Test(req)
+			resp, err := suite.app.Test(req)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 		})
@@ -119,8 +131,8 @@ func TestGetCurrentTripLocation(t *testing.T) {
 }
 
 // Test UpdateTripStatus endpoint
-func TestUpdateTripStatus(t *testing.T) {
-	app := setupTestApp()
+func (suite *TrackingHandlerTestSuite) TestUpdateTripStatus() {
+	t := suite.T()
 
 	tests := []struct {
 		name           string
@@ -134,7 +146,7 @@ func TestUpdateTripStatus(t *testing.T) {
 			statusData: map[string]string{
 				"status": "ACTIVE",
 			},
-			expectedStatus: 400, // Would fail due to missing trip in test DB
+			expectedStatus: 200, // Should find a trip now
 		},
 		{
 			name:   "Invalid status",
@@ -164,7 +176,7 @@ func TestUpdateTripStatus(t *testing.T) {
 			req := httptest.NewRequest("PUT", "/trips/"+tt.tripID+"/tracking/status", bytes.NewBuffer(jsonData))
 			req.Header.Set("Content-Type", "application/json")
 
-			resp, err := app.Test(req)
+			resp, err := suite.app.Test(req)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 		})
@@ -172,8 +184,8 @@ func TestUpdateTripStatus(t *testing.T) {
 }
 
 // Test GetTripTrackingHistory endpoint
-func TestGetTripTrackingHistory(t *testing.T) {
-	app := setupTestApp()
+func (suite *TrackingHandlerTestSuite) TestGetTripTrackingHistory() {
+	t := suite.T()
 
 	tests := []struct {
 		name           string
@@ -185,19 +197,19 @@ func TestGetTripTrackingHistory(t *testing.T) {
 			name:           "Valid request with default params",
 			tripID:         "1",
 			queryParams:    "",
-			expectedStatus: 404, // No trip in test DB
+			expectedStatus: 200, // Should find a trip now
 		},
 		{
 			name:           "Valid request with limit",
 			tripID:         "1",
 			queryParams:    "?limit=10",
-			expectedStatus: 404,
+			expectedStatus: 200,
 		},
 		{
 			name:           "Valid request with offset",
 			tripID:         "1",
 			queryParams:    "?offset=5",
-			expectedStatus: 404,
+			expectedStatus: 200,
 		},
 		{
 			name:           "Invalid trip ID",
@@ -210,7 +222,7 @@ func TestGetTripTrackingHistory(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			req := httptest.NewRequest("GET", "/trips/"+tt.tripID+"/tracking/history"+tt.queryParams, nil)
-			resp, err := app.Test(req)
+			resp, err := suite.app.Test(req)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 		})
@@ -218,8 +230,8 @@ func TestGetTripTrackingHistory(t *testing.T) {
 }
 
 // Test GetLoadTracking endpoint
-func TestGetLoadTracking(t *testing.T) {
-	app := setupTestApp()
+func (suite *TrackingHandlerTestSuite) TestGetLoadTracking() {
+	t := suite.T()
 
 	tests := []struct {
 		name           string
@@ -229,7 +241,7 @@ func TestGetLoadTracking(t *testing.T) {
 		{
 			name:           "Valid load ID",
 			loadID:         "1",
-			expectedStatus: 404, // No load in test DB
+			expectedStatus: 200, // Should find a load now
 		},
 		{
 			name:           "Invalid load ID",
@@ -241,7 +253,7 @@ func TestGetLoadTracking(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			req := httptest.NewRequest("GET", "/loads/"+tt.loadID+"/tracking", nil)
-			resp, err := app.Test(req)
+			resp, err := suite.app.Test(req)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 		})
@@ -249,8 +261,8 @@ func TestGetLoadTracking(t *testing.T) {
 }
 
 // Test GetUserActiveTrackings endpoint
-func TestGetUserActiveTrackings(t *testing.T) {
-	app := setupTestApp()
+func (suite *TrackingHandlerTestSuite) TestGetUserActiveTrackings() {
+	t := suite.T()
 
 	tests := []struct {
 		name           string
@@ -262,13 +274,13 @@ func TestGetUserActiveTrackings(t *testing.T) {
 			name:           "Valid user ID",
 			userID:         "1",
 			role:           "",
-			expectedStatus: 404, // No user in test DB
+			expectedStatus: 200, // Should find a user now
 		},
 		{
 			name:           "Valid user ID with role",
 			userID:         "1",
 			role:           "CARRIER",
-			expectedStatus: 404,
+			expectedStatus: 200, // Should find a user now
 		},
 		{
 			name:           "Invalid user ID",
@@ -286,7 +298,7 @@ func TestGetUserActiveTrackings(t *testing.T) {
 			}
 
 			req := httptest.NewRequest("GET", url, nil)
-			resp, err := app.Test(req)
+			resp, err := suite.app.Test(req)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 		})
@@ -294,8 +306,8 @@ func TestGetUserActiveTrackings(t *testing.T) {
 }
 
 // Test GetLightweightTracking endpoint (mobile)
-func TestGetLightweightTracking(t *testing.T) {
-	app := setupTestApp()
+func (suite *TrackingHandlerTestSuite) TestGetLightweightTracking() {
+	t := suite.T()
 
 	tests := []struct {
 		name           string
@@ -305,7 +317,7 @@ func TestGetLightweightTracking(t *testing.T) {
 		{
 			name:           "Valid trip ID",
 			tripID:         "1",
-			expectedStatus: 404, // No trip in test DB
+			expectedStatus: 200, // Should find a trip now
 		},
 		{
 			name:           "Invalid trip ID",
@@ -317,7 +329,7 @@ func TestGetLightweightTracking(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			req := httptest.NewRequest("GET", "/mobile/trips/"+tt.tripID+"/tracking", nil)
-			resp, err := app.Test(req)
+			resp, err := suite.app.Test(req)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 		})
@@ -325,12 +337,12 @@ func TestGetLightweightTracking(t *testing.T) {
 }
 
 // Test JSON response parsing
-func TestJSONResponseParsing(t *testing.T) {
-	app := setupTestApp()
+func (suite *TrackingHandlerTestSuite) TestJSONResponseParsing() {
+	t := suite.T()
 
 	// Test error response format
 	req := httptest.NewRequest("GET", "/trips/invalid/tracking/current", nil)
-	resp, err := app.Test(req)
+	resp, err := suite.app.Test(req)
 	assert.NoError(t, err)
 	assert.Equal(t, 400, resp.StatusCode)
 
@@ -342,27 +354,26 @@ func TestJSONResponseParsing(t *testing.T) {
 }
 
 // Test request validation
-func TestRequestValidation(t *testing.T) {
-	app := setupTestApp()
+func (suite *TrackingHandlerTestSuite) TestRequestValidation() {
+	t := suite.T()
 
 	// Test malformed JSON
 	req := httptest.NewRequest("POST", "/trips/1/tracking/location", bytes.NewBufferString("invalid json"))
 	req.Header.Set("Content-Type", "application/json")
-	resp, err := app.Test(req)
+	resp, err := suite.app.Test(req)
 	assert.NoError(t, err)
 	assert.Equal(t, 400, resp.StatusCode)
 
 	// Test empty request body
 	req = httptest.NewRequest("POST", "/trips/1/tracking/location", bytes.NewBuffer([]byte{}))
 	req.Header.Set("Content-Type", "application/json")
-	resp, err = app.Test(req)
+	resp, err = suite.app.Test(req)
 	assert.NoError(t, err)
 	assert.Equal(t, 400, resp.StatusCode)
 }
 
 // Performance test for tracking endpoints
-func BenchmarkUpdateTripLocation(b *testing.B) {
-	app := setupTestApp()
+func (suite *TrackingHandlerTestSuite) BenchmarkUpdateTripLocation(b *testing.B) {
 	locationData := services.LocationUpdate{
 		Latitude:  40.7128,
 		Longitude: -74.0060,
@@ -374,13 +385,13 @@ func BenchmarkUpdateTripLocation(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		req := httptest.NewRequest("POST", "/trips/1/tracking/location", bytes.NewBuffer(jsonData))
 		req.Header.Set("Content-Type", "application/json")
-		app.Test(req)
+		suite.app.Test(req)
 	}
 }
 
 // Test concurrent requests
-func TestConcurrentRequests(t *testing.T) {
-	app := setupTestApp()
+func (suite *TrackingHandlerTestSuite) TestConcurrentRequests() {
+	t := suite.T()
 
 	// Test concurrent location updates
 	concurrency := 10
@@ -397,7 +408,7 @@ func TestConcurrentRequests(t *testing.T) {
 			req := httptest.NewRequest("POST", "/trips/1/tracking/location", bytes.NewBuffer(jsonData))
 			req.Header.Set("Content-Type", "application/json")
 
-			resp, err := app.Test(req)
+			resp, err := suite.app.Test(req)
 			assert.NoError(t, err)
 			assert.NotNil(t, resp)
 
@@ -409,4 +420,8 @@ func TestConcurrentRequests(t *testing.T) {
 	for i := 0; i < concurrency; i++ {
 		<-done
 	}
+}
+
+func TestTrackingHandlerTestSuite(t *testing.T) {
+	suite.Run(t, new(TrackingHandlerTestSuite))
 }

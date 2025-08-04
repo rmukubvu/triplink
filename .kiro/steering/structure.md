@@ -1,38 +1,69 @@
+
 # Project Structure
 
 ## Directory Organization
 
 ```
-triplink/backend/
-├── main.go                 # Application entry point
-├── go.mod                  # Go module dependencies
-├── go.sum                  # Dependency checksums
-├── docker-compose.yml      # PostgreSQL container setup
-├── README.md              # Project documentation
-├── api_schema.json        # API schema reference
-├── auth/                  # Authentication logic
-│   └── auth.go
-├── database/              # Database connection and configuration
-│   └── database.go
-├── models/                # Data models and database schemas
-│   └── models.go
-├── handlers/              # HTTP request handlers (controllers)
-│   ├── user_handler.go
-│   ├── trip_handler.go
-│   ├── load_handler.go
-│   ├── quote_handler.go
-│   ├── vehicle_handler.go
-│   ├── message_handler.go
-│   ├── transaction_handler.go
-│   ├── review_handler.go
-│   ├── notification_handler.go
-│   ├── manifest_handler.go
-│   └── customs_handler.go
-├── routes/                # Route definitions and middleware
-└── docs/                  # Auto-generated Swagger documentation
-    ├── docs.go
-    ├── swagger.json
-    └── swagger.yaml
+triplink/
+├── backend/               # Go backend API server
+│   ├── main.go           # Application entry point
+│   ├── go.mod            # Go module dependencies
+│   ├── go.sum            # Dependency checksums
+│   ├── docker-compose.yml # PostgreSQL container setup
+│   ├── README.md         # Project documentation
+│   ├── api_schema.json   # API schema reference
+│   ├── auth/             # Authentication logic
+│   │   └── auth.go
+│   ├── database/         # Database connection and configuration
+│   │   └── database.go
+│   ├── models/           # Data models and database schemas
+│   │   └── models.go
+│   ├── handlers/         # HTTP request handlers (controllers)
+│   │   ├── user_handler.go
+│   │   ├── trip_handler.go
+│   │   ├── load_handler.go
+│   │   ├── quote_handler.go
+│   │   ├── vehicle_handler.go
+│   │   ├── message_handler.go
+│   │   ├── transaction_handler.go
+│   │   ├── review_handler.go
+│   │   ├── notification_handler.go
+│   │   ├── manifest_handler.go
+│   │   └── customs_handler.go
+│   ├── routes/           # Route definitions and middleware
+│   ├── services/         # Business logic services
+│   ├── test/             # Backend tests
+│   └── docs/             # Auto-generated Swagger documentation
+│       ├── docs.go
+│       ├── swagger.json
+│       └── swagger.yaml
+├── triplink-web-react/    # React web application
+│   ├── src/
+│   │   ├── components/   # Reusable React components
+│   │   ├── pages/        # Page components
+│   │   ├── services/     # API service functions
+│   │   ├── types/        # TypeScript type definitions
+│   │   ├── contexts/     # React contexts
+│   │   ├── hooks/        # Custom React hooks
+│   │   ├── utils/        # Utility functions
+│   │   └── assets/       # Static assets
+│   ├── public/
+│   ├── package.json
+│   └── README.md
+└── triplink-mobile/       # React Native mobile application
+    ├── src/
+    │   ├── components/   # Reusable React Native components
+    │   ├── screens/      # Screen components
+    │   ├── services/     # API and device services
+    │   ├── navigation/   # Navigation configuration
+    │   ├── state/        # State management (Redux)
+    │   ├── utils/        # Utility functions
+    │   └── assets/       # Static assets
+    ├── __tests__/        # Mobile app tests
+    ├── android/          # Android-specific code
+    ├── ios/              # iOS-specific code
+    ├── package.json
+    └── README.md
 ```
 
 ## Architecture Patterns

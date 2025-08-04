@@ -1,15 +1,31 @@
 package routes
 
 import (
+	"time"
+
 	"github.com/gofiber/fiber/v2"
 	"triplink/backend/auth"
 	"triplink/backend/handlers"
+	"triplink/backend/middleware"
 
 	swagger "github.com/gofiber/swagger" // swagger handler
 )
 
 func Setup(app *fiber.App) {
 	// @BasePath /api
+	
+	// Initialize cache middleware
+	cacheMiddleware := middleware.NewCacheMiddleware()
+	
+	// Add rate limiting middleware globally (100 requests per minute)
+	app.Use(cacheMiddleware.RateLimitMiddleware(100, time.Minute))
+	
+	// Add session middleware
+	app.Use(cacheMiddleware.SessionMiddleware())
+	
+	// Cache health check endpoint
+	app.Get("/api/cache/health", cacheMiddleware.HealthCheckHandler())
+	
 	// Auth
 	app.Post("/api/register", handlers.Register)
 	app.Post("/api/login", handlers.Login)
@@ -67,6 +83,82 @@ func Setup(app *fiber.App) {
 	// Transactions
 	app.Get("/api/transactions", auth.Middleware(), handlers.GetTransactions)
 	app.Post("/api/transactions", auth.Middleware(), handlers.CreateTransaction)
+
+	// Analytics Routes with caching
+	analyticsGroup := app.Group("/api/analytics", auth.Middleware(), cacheMiddleware.Cache("analytics"))
+	analyticsGroup.Post("/on-time-delivery", handlers.GetOnTimeDeliveryAnalytics)
+	analyticsGroup.Post("/delivery-performance/by-route", handlers.GetDeliveryPerformanceByRoute)
+	analyticsGroup.Post("/delivery-performance/by-driver", handlers.GetDeliveryPerformanceByDriver)
+	analyticsGroup.Post("/customer-satisfaction", handlers.GetCustomerSatisfactionAnalytics)
+	analyticsGroup.Post("/load-matching", handlers.GetLoadMatchingAnalytics)
+	analyticsGroup.Post("/capacity-utilization", handlers.GetCapacityUtilizationAnalytics)
+	analyticsGroup.Post("/delay-analysis", handlers.GetDelayAnalysisAnalytics)
+	analyticsGroup.Post("/vehicle-capacity", handlers.GetVehicleCapacityData)
+	analyticsGroup.Post("/kpis/:category", handlers.GetOperationalKPIs)
+
+	// Route Optimization Routes with caching
+	routeOptGroup := app.Group("/api/route-optimization", auth.Middleware(), cacheMiddleware.Cache("route_optimization"))
+	routeOptGroup.Post("/optimize", handlers.OptimizeRoute)
+	routeOptGroup.Post("/multiple", handlers.GetMultipleRouteOptions)
+	routeOptGroup.Post("/compare", handlers.CompareRoutes)
+	routeOptGroup.Get("/traffic/:route_id", handlers.GetRealTimeTraffic)
+	routeOptGroup.Get("/recommendations/:route_id", handlers.GetRouteRecommendations)
+
+	// External API Routes with caching
+	externalGroup := app.Group("/api/external", auth.Middleware(), cacheMiddleware.Cache("external_api"))
+	externalGroup.Post("/fuel-prices", handlers.GetFuelPricesAlongRoute)
+	externalGroup.Post("/toll-costs", handlers.GetTollCosts)
+	externalGroup.Post("/construction-alerts", handlers.GetConstructionAlerts)
+	externalGroup.Post("/route-analysis", handlers.GetComprehensiveRouteAnalysis)
+
+	// Machine Learning Routes with caching
+	mlGroup := app.Group("/api/ml", auth.Middleware(), cacheMiddleware.Cache("ml_predictions"))
+	mlGroup.Post("/sentiment-analysis", handlers.AnalyzeSentiment)
+	mlGroup.Post("/predict-delay", handlers.PredictDeliveryDelay)
+	mlGroup.Post("/predict-satisfaction", handlers.PredictCustomerSatisfaction)
+	mlGroup.Post("/classify-text", handlers.ClassifyText)
+	mlGroup.Post("/optimize-route", handlers.OptimizeRouteWithML)
+	mlGroup.Post("/batch-analyze-feedback", handlers.BatchAnalyzeFeedback)
+	mlGroup.Post("/operations-insights", handlers.GetOperationsMLInsights)
+
+	// Tracking Routes (Phase 4 - Real-time tracking)
+	trackingGroup := app.Group("/api/tracking", auth.Middleware())
+	
+	// Trip Tracking Endpoints
+	trackingGroup.Post("/trips/:trip_id/location", handlers.UpdateTripLocation)
+	trackingGroup.Get("/trips/:trip_id/current", handlers.GetCurrentTripLocation)
+	trackingGroup.Get("/trips/:trip_id/history", handlers.GetTripTrackingHistory)
+	trackingGroup.Put("/trips/:trip_id/status", handlers.UpdateTripStatus)
+	trackingGroup.Get("/trips/:trip_id/eta", handlers.GetTripETA)
+	trackingGroup.Get("/trips/:trip_id/status", handlers.GetTripTrackingStatus)
+	trackingGroup.Get("/trips/:trip_id/events", handlers.GetTripTrackingEvents)
+	
+	// Load Tracking Endpoints
+	trackingGroup.Get("/loads/:load_id", handlers.GetLoadTracking)
+	trackingGroup.Get("/loads/:load_id/events", handlers.GetLoadTrackingEvents)
+	trackingGroup.Put("/loads/:load_id/status", handlers.UpdateLoadStatus)
+	trackingGroup.Get("/loads/:load_id/history", handlers.GetLoadTrackingHistory)
+	
+	// User-specific Tracking Endpoints
+	trackingGroup.Get("/users/:user_id/active", handlers.GetUserActiveTrackings)
+	trackingGroup.Get("/users/:user_id/shipper-view", handlers.GetShipperTrackingView)
+	trackingGroup.Get("/users/:user_id/carrier-view", handlers.GetCarrierTrackingView)
+	trackingGroup.Get("/users/:user_id/notifications", handlers.GetUserTrackingNotifications)
+	
+	// Mobile-optimized Tracking Endpoints
+	mobileGroup := app.Group("/api/mobile")
+	mobileGroup.Get("/trips/:trip_id/tracking", handlers.GetLightweightTracking)
+	mobileGroup.Post("/trips/:trip_id/sync", auth.Middleware(), handlers.SyncOfflineData)
+	mobileGroup.Get("/trips/:trip_id/battery-settings", handlers.GetBatteryOptimizedSettings)
+	mobileGroup.Put("/users/:user_id/preferences", auth.Middleware(), handlers.UpdateMobileTrackingPreferences)
+	mobileGroup.Get("/users/:user_id/tracking/summary", handlers.GetMobileTrackingSummary)
+	
+	// Analytics and Monitoring Endpoints
+	monitoringGroup := app.Group("/api/monitoring", auth.Middleware())
+	monitoringGroup.Get("/trips/:trip_id/analytics", handlers.GetTrackingAnalytics)
+	monitoringGroup.Get("/tracking/health", handlers.GetSystemHealthMetrics)
+	monitoringGroup.Get("/tracking/performance", handlers.GetTrackingPerformanceMetrics)
+	monitoringGroup.Get("/tracking/data-quality", handlers.GetDataQualityReport)
 
 	// Swagger
 	app.Get("/swagger/*", swagger.HandlerDefault) // default

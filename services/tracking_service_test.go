@@ -257,15 +257,9 @@ func TestSanitizeLocationData(t *testing.T) {
 	assert.Equal(t, "GPS", location.Source)
 }
 
+
 // Test delay detection
 func TestCheckForDelays(t *testing.T) {
-	ts := NewTrackingService()
-
-	// Mock trip with past estimated arrival
-	trip := models.Trip{
-		EstimatedArrival: time.Now().Add(-2 * time.Hour), // 2 hours ago
-	}
-
 	// This would require mocking the database call
 	// For now, we'll test the delay calculation logic directly
 	now := time.Now()

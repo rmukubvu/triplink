@@ -6,7 +6,11 @@
       "Bash(swag init:*)",
       "Bash(pkill:*)",
       "Bash(grep:*)",
-      "Bash(kill:*)"
+      "Bash(kill:*)",
+      "Bash(rg:*)",
+      "Bash(go mod:*)",
+      "Bash(go build:*)",
+      "Bash(sed:*)"
     ],
     "deny": []
   }

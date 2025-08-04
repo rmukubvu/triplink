@@ -12,7 +12,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-var trackingService = services.NewTrackingService()
+var trackingService = services.NewTrackingService(database.DB)
 
 // UpdateTripLocation @Summary Update trip location
 // @Description Update the current location of a trip
@@ -210,12 +210,25 @@ func UpdateTripStatus(c *fiber.Ctx) error {
 		})
 	}
 
+	// Get current trip status
+	var trip models.Trip
+	if err := database.DB.First(&trip, uint(tripID)).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{
+			"error": "Trip not found",
+		})
+	}
+	oldStatus := trip.Status
+
 	// Update status using tracking service
 	if err := trackingService.UpdateTripStatus(uint(tripID), newStatus); err != nil {
 		return c.Status(400).JSON(fiber.Map{
 			"error": "Failed to update status: " + err.Error(),
 		})
 	}
+
+	// Trigger notification for status change
+	triggerService := services.NewNotificationTriggerService(database.DB)
+	triggerService.TripStatusChangeHandler(uint(tripID), oldStatus, newStatus)
 
 	return c.JSON(fiber.Map{
 		"message": "Status updated successfully",
@@ -551,6 +564,10 @@ func UpdateLoadStatus(c *fiber.Ctx) error {
 		loadTrackingStatus.CompletionPercent = calculateLoadCompletionPercent(newStatus)
 		database.DB.Save(&loadTrackingStatus)
 	}
+
+	// Trigger notification for load status change
+	triggerService := services.NewNotificationTriggerService(database.DB)
+	triggerService.LoadStatusChangeHandler(uint(loadID), previousStatus, newStatus)
 
 	return c.JSON(fiber.Map{
 		"message":         "Load status updated successfully",

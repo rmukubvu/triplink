@@ -222,6 +222,42 @@ type Notification struct {
 	Type      string `json:"type"` // QUOTE_RECEIVED, LOAD_BOOKED, PICKUP_SCHEDULED, etc.
 	IsRead    bool   `gorm:"default:false" json:"is_read"`
 	RelatedID uint   `json:"related_id"` // ID of related load, trip, etc.
+	// Delivery tracking
+	Deliveries []NotificationDelivery `json:"deliveries,omitempty" gorm:"foreignKey:NotificationID"`
+}
+
+// NotificationToken stores device tokens for push notifications
+type NotificationToken struct {
+	BaseModel
+	UserID     uint      `json:"user_id"`
+	Token      string    `json:"token" gorm:"uniqueIndex:idx_token_user"`
+	DeviceType string    `json:"device_type"` // ios, android
+	LastUsed   time.Time `json:"last_used"`
+}
+
+// NotificationDelivery tracks notification delivery attempts
+type NotificationDelivery struct {
+	BaseModel
+	NotificationID uint      `json:"notification_id"`
+	UserID         uint      `json:"user_id"`
+	Success        bool      `json:"success"`
+	Provider       string    `json:"provider"`
+	SentAt         time.Time `json:"sent_at"`
+	Error          string    `json:"error,omitempty"`
+}
+
+// NotificationPreferences stores user preferences for notifications
+type NotificationPreferences struct {
+	BaseModel
+	UserID          uint `json:"user_id" gorm:"uniqueIndex"`
+	TripDeparture   bool `json:"trip_departure" gorm:"default:true"`
+	TripArrival     bool `json:"trip_arrival" gorm:"default:true"`
+	Delays          bool `json:"delays" gorm:"default:true"`
+	ETAUpdates      bool `json:"eta_updates" gorm:"default:true"`
+	LoadStatus      bool `json:"load_status" gorm:"default:true"`
+	LocationUpdates bool `json:"location_updates" gorm:"default:false"`
+	EmailEnabled    bool `json:"email_enabled" gorm:"default:true"`
+	PushEnabled     bool `json:"push_enabled" gorm:"default:true"`
 }
 
 type Transaction struct {
